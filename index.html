@@ -1,155 +1,166 @@
 <!DOCTYPE html>
 <html lang="ja">
+
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>タイマー背景変更</title>
-  <style>
-    body {
-      margin: 0;
-      padding: 0;
-      background-color: green;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      font-family: sans-serif;
-      transition: background-color 0.5s;
-    }
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>段階タイマー</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: green;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            font-family: sans-serif;
+            transition: background-color 0.5s;
+        }
 
-    #timeContainer {
-      text-align: center;
-      margin-bottom: 30px;
-      color: white;
-      font-size: 2em;
-    }
+        #timeContainer {
+            text-align: center;
+            margin-bottom: 30px;
+            color: white;
+            font-size: 3em;
+        }
 
-    .controls {
-      display: flex;
-      gap: 1em;
-      flex-wrap: wrap;
-      justify-content: center;
-    }
+        .controls {
+            display: flex;
+            gap: 1em;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
 
-    button {
-      padding: 1em 2em;
-      font-size: 1.2em;
-      border: none;
-      border-radius: 10px;
-      background-color: white;
-      cursor: pointer;
-      box-shadow: 2px 2px 5px rgba(0,0,0,0.2);
-    }
+        button {
+            padding: 1em 2em;
+            font-size: 2em;
+            border: none;
+            border-radius: 10px;
+            background-color: white;
+            cursor: pointer;
+            box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
+        }
 
-    button:active {
-      transform: scale(0.98);
-    }
+        button:active {
+            transform: scale(0.98);
+        }
 
-    @media (max-width: 600px) {
-      button {
-        width: 100%;
-      }
-    }
-  </style>
+        @media (max-width: 600px) {
+            button {
+                width: 100%;
+            }
+        }
+    </style>
 </head>
+
 <body>
 
-  <div id="timeContainer">
-    <div>総経過時間：<span id="elapsedDisplay">00:00</span></div>
-    <div>残り時間：<span id="remainingDisplay">14:00</span></div>
-  </div>
+    <div id="timeContainer">
+        <div>ALL：<span id="totalCountdown">14:00</span></div>
+        <div>NEXT：<span id="stageRemaining">4:30</span></div>
+    </div>
 
-  <div class="controls">
-    <button id="startBtn">スタート</button>
-    <button id="pauseBtn">一時停止</button>
-    <button id="resetBtn">リセット</button>
-  </div>
+    <div class="controls">
+        <button id="startBtn">START</button>
+        <button id="resetBtn">RESET</button>
+    </div>
 
-  <script>
-    let startTime = null;
-    let timerId = null;
-    let paused = false;
-    let elapsed = 0;
-    const totalTime = 14 * 60 * 1000; // 14分
+    <script>
+        const totalTime = 14 * 60 * 1000; // 14分
+        let elapsed = 0;
+        let startTime = null;
+        let timerId = null;
+        let paused = false;
 
-    const colorChanges = [
-      { time: 5 * 60 * 1000, color: 'red' },
-      { time: 8 * 60 * 1000, color: 'green' },
-      { time: 11 * 60 * 1000, color: 'red' },
-      { time: 14 * 60 * 1000, color: 'blue' }
-    ];
+        const totalCountdownDisplay = document.getElementById('totalCountdown');
+        const stageRemainingDisplay = document.getElementById('stageRemaining');
 
-    const elapsedDisplay = document.getElementById('elapsedDisplay');
-    const remainingDisplay = document.getElementById('remainingDisplay');
+        const stages = [
+            { start: 0 * 60 * 1000, duration: 4.5 * 60 * 1000, color: 'green' },
+            { start: 5 * 60 * 1000, duration: 3 * 60 * 1000, color: 'red' },
+            { start: 8 * 60 * 1000, duration: 3.5 * 60 * 1000, color: 'green' },
+            { start: 11 * 60 * 1000, duration: 3 * 60 * 1000, color: 'red' } // ← 赤に変更
+        ];
 
-    function formatTime(ms) {
-      const minutes = Math.floor(ms / 60000);
-      const seconds = Math.floor((ms % 60000) / 1000);
-      return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
-    }
-
-    function updateDisplays(ms) {
-      const remaining = Math.max(totalTime - ms, 0);
-      elapsedDisplay.textContent = formatTime(ms);
-      remainingDisplay.textContent = formatTime(remaining);
-    }
-
-    function startTimer() {
-      if (timerId || paused) return;
-
-      startTime = Date.now() - elapsed;
-
-      timerId = setInterval(() => {
-        const now = Date.now();
-        elapsed = now - startTime;
-
-        updateDisplays(elapsed);
-
-        for (let i = colorChanges.length - 1; i >= 0; i--) {
-          if (elapsed >= colorChanges[i].time) {
-            document.body.style.backgroundColor = colorChanges[i].color;
-            break;
-          }
+        function formatTime(ms) {
+            const minutes = Math.floor(ms / 60000);
+            const seconds = Math.floor((ms % 60000) / 1000);
+            return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
         }
 
-        if (elapsed >= totalTime) {
-          clearInterval(timerId);
-          timerId = null;
-          updateDisplays(totalTime);
+        function getCurrentStage(elapsed) {
+            for (let i = stages.length - 1; i >= 0; i--) {
+                if (elapsed >= stages[i].start) {
+                    return stages[i];
+                }
+            }
+            return stages[0];
         }
-      }, 1000);
-    }
 
-    function pauseTimer() {
-      if (timerId) {
-        clearInterval(timerId);
-        timerId = null;
-        paused = true;
-      }
-    }
+        function updateDisplay(ms) {
+            const remainingTotal = Math.max(totalTime - ms, 0);
+            totalCountdownDisplay.textContent = formatTime(remainingTotal);
 
-    function resetTimer() {
-      clearInterval(timerId);
-      timerId = null;
-      startTime = null;
-      elapsed = 0;
-      paused = false;
-      document.body.style.backgroundColor = 'green';
-      updateDisplays(0);
-    }
+            const stage = getCurrentStage(ms);
+            const stageElapsed = ms - stage.start;
+            const stageRemaining = Math.max(stage.duration - stageElapsed, 0);
+            stageRemainingDisplay.textContent = formatTime(stageRemaining);
 
-    document.getElementById('startBtn').addEventListener('click', () => {
-      if (paused) paused = false;
-      startTimer();
-    });
+            // 終了後に青に固定
+            if (ms >= totalTime) {
+                document.body.style.backgroundColor = 'blue';
+            } else {
+                document.body.style.backgroundColor = stage.color;
+            }
+        }
 
-    document.getElementById('pauseBtn').addEventListener('click', pauseTimer);
-    document.getElementById('resetBtn').addEventListener('click', resetTimer);
+        function startTimer() {
+            if (timerId || paused) return;
+            startTime = Date.now() - elapsed;
 
-    // 初期表示
-    updateDisplays(0);
-  </script>
+            timerId = setInterval(() => {
+                const now = Date.now();
+                elapsed = now - startTime;
+
+                updateDisplay(elapsed);
+
+                if (elapsed >= totalTime) {
+                    clearInterval(timerId);
+                    timerId = null;
+                    updateDisplay(totalTime); // 終了時に青で固定表示
+                }
+            }, 1000);
+        }
+
+        function pauseTimer() {
+            if (timerId) {
+                clearInterval(timerId);
+                timerId = null;
+                paused = true;
+            }
+        }
+
+        function resetTimer() {
+            clearInterval(timerId);
+            timerId = null;
+            elapsed = 0;
+            paused = false;
+            document.body.style.backgroundColor = 'green';
+            updateDisplay(0);
+        }
+
+        document.getElementById('startBtn').addEventListener('click', () => {
+            if (paused) paused = false;
+            startTimer();
+        });
+        document.getElementById('pauseBtn').addEventListener('click', pauseTimer);
+        document.getElementById('resetBtn').addEventListener('click', resetTimer);
+
+        updateDisplay(0);
+    </script>
 
 </body>
+
 </html>
