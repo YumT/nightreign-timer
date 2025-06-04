@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>タイマー背景変更</title>
   <style>
     body {
@@ -18,10 +18,16 @@
       transition: background-color 0.5s;
     }
 
+    #timeContainer {
+      text-align: center;
+      margin-bottom: 30px;
+      color: white;
+      font-size: 2em;
+    }
+
     .controls {
       display: flex;
       gap: 1em;
-      margin-top: 20px;
       flex-wrap: wrap;
       justify-content: center;
     }
@@ -49,6 +55,11 @@
 </head>
 <body>
 
+  <div id="timeContainer">
+    <div>総経過時間：<span id="elapsedDisplay">00:00</span></div>
+    <div>残り時間：<span id="remainingDisplay">14:00</span></div>
+  </div>
+
   <div class="controls">
     <button id="startBtn">スタート</button>
     <button id="pauseBtn">一時停止</button>
@@ -60,6 +71,7 @@
     let timerId = null;
     let paused = false;
     let elapsed = 0;
+    const totalTime = 14 * 60 * 1000; // 14分
 
     const colorChanges = [
       { time: 5 * 60 * 1000, color: 'red' },
@@ -67,6 +79,21 @@
       { time: 11 * 60 * 1000, color: 'red' },
       { time: 14 * 60 * 1000, color: 'blue' }
     ];
+
+    const elapsedDisplay = document.getElementById('elapsedDisplay');
+    const remainingDisplay = document.getElementById('remainingDisplay');
+
+    function formatTime(ms) {
+      const minutes = Math.floor(ms / 60000);
+      const seconds = Math.floor((ms % 60000) / 1000);
+      return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+    }
+
+    function updateDisplays(ms) {
+      const remaining = Math.max(totalTime - ms, 0);
+      elapsedDisplay.textContent = formatTime(ms);
+      remainingDisplay.textContent = formatTime(remaining);
+    }
 
     function startTimer() {
       if (timerId || paused) return;
@@ -77,6 +104,8 @@
         const now = Date.now();
         elapsed = now - startTime;
 
+        updateDisplays(elapsed);
+
         for (let i = colorChanges.length - 1; i >= 0; i--) {
           if (elapsed >= colorChanges[i].time) {
             document.body.style.backgroundColor = colorChanges[i].color;
@@ -84,9 +113,10 @@
           }
         }
 
-        if (elapsed >= 14 * 60 * 1000) {
+        if (elapsed >= totalTime) {
           clearInterval(timerId);
           timerId = null;
+          updateDisplays(totalTime);
         }
       }, 1000);
     }
@@ -106,17 +136,20 @@
       elapsed = 0;
       paused = false;
       document.body.style.backgroundColor = 'green';
+      updateDisplays(0);
     }
 
     document.getElementById('startBtn').addEventListener('click', () => {
-      if (paused) {
-        paused = false;
-      }
+      if (paused) paused = false;
       startTimer();
     });
 
     document.getElementById('pauseBtn').addEventListener('click', pauseTimer);
     document.getElementById('resetBtn').addEventListener('click', resetTimer);
+
+    // 初期表示
+    updateDisplays(0);
   </script>
+
 </body>
 </html>
