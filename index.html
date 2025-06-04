@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>タイマー背景変更</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background-color: green;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      font-family: sans-serif;
+      transition: background-color 0.5s;
+    }
+
+    .controls {
+      display: flex;
+      gap: 1em;
+      margin-top: 20px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    button {
+      padding: 1em 2em;
+      font-size: 1.2em;
+      border: none;
+      border-radius: 10px;
+      background-color: white;
+      cursor: pointer;
+      box-shadow: 2px 2px 5px rgba(0,0,0,0.2);
+    }
+
+    button:active {
+      transform: scale(0.98);
+    }
+
+    @media (max-width: 600px) {
+      button {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="controls">
+    <button id="startBtn">スタート</button>
+    <button id="pauseBtn">一時停止</button>
+    <button id="resetBtn">リセット</button>
+  </div>
+
+  <script>
+    let startTime = null;
+    let timerId = null;
+    let paused = false;
+    let elapsed = 0;
+
+    const colorChanges = [
+      { time: 5 * 60 * 1000, color: 'red' },
+      { time: 8 * 60 * 1000, color: 'green' },
+      { time: 11 * 60 * 1000, color: 'red' },
+      { time: 14 * 60 * 1000, color: 'blue' }
+    ];
+
+    function startTimer() {
+      if (timerId || paused) return;
+
+      startTime = Date.now() - elapsed;
+
+      timerId = setInterval(() => {
+        const now = Date.now();
+        elapsed = now - startTime;
+
+        for (let i = colorChanges.length - 1; i >= 0; i--) {
+          if (elapsed >= colorChanges[i].time) {
+            document.body.style.backgroundColor = colorChanges[i].color;
+            break;
+          }
+        }
+
+        if (elapsed >= 14 * 60 * 1000) {
+          clearInterval(timerId);
+          timerId = null;
+        }
+      }, 1000);
+    }
+
+    function pauseTimer() {
+      if (timerId) {
+        clearInterval(timerId);
+        timerId = null;
+        paused = true;
+      }
+    }
+
+    function resetTimer() {
+      clearInterval(timerId);
+      timerId = null;
+      startTime = null;
+      elapsed = 0;
+      paused = false;
+      document.body.style.backgroundColor = 'green';
+    }
+
+    document.getElementById('startBtn').addEventListener('click', () => {
+      if (paused) {
+        paused = false;
+      }
+      startTimer();
+    });
+
+    document.getElementById('pauseBtn').addEventListener('click', pauseTimer);
+    document.getElementById('resetBtn').addEventListener('click', resetTimer);
+  </script>
+</body>
+</html>
