@@ -127,6 +127,7 @@
 
         function startTimer() {
             if (timerId || paused) return;
+            requestWakeLock(); // 画面オフさせない
             startTime = Date.now() - elapsed;
 
             timerId = setInterval(() => {
@@ -159,6 +160,25 @@
             document.body.style.backgroundColor = 'green';
             updateDisplay(0);
         }
+        let wakeLock = null;
+
+        async function requestWakeLock() {
+            try {
+                wakeLock = await navigator.wakeLock.request('screen');
+                console.log('Wake Lock is active');
+                wakeLock.addEventListener('release', () => {
+                    console.log('Wake Lock was released');
+                });
+            } catch (err) {
+                console.error(`${err.name}, ${err.message}`);
+            }
+        }
+
+        document.addEventListener("visibilitychange", () => {
+            if (wakeLock !== null && document.visibilityState === "visible") {
+                requestWakeLock(); // ページに戻った時に再取得
+            }
+        });
 
         document.getElementById('startBtn').addEventListener('click', () => {
             if (paused) paused = false;
