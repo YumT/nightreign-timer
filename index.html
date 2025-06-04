@@ -71,6 +71,7 @@
 
     <script>
         const totalTime = 14 * 60 * 1000; // 14分
+        //const totalTime = 14 * 1000; // デバッグ
         let elapsed = 0;
         let startTime = null;
         let timerId = null;
@@ -80,10 +81,16 @@
         const stageRemainingDisplay = document.getElementById('stageRemaining');
 
         const stages = [
+            /*   デバッグ
+            { start: 0*1000, duration: 4.5 * 1000, color: 'green' },
+            { start: 4.5 * 1000, duration: 3 * 1000, color: 'red' },
+            { start: 7.5 * 1000, duration: 3.5 * 1000, color: 'green' },
+            { start: 11 * 1000, duration: 3 * 1000, color: 'red' }, 
+             */
             { start: 0 * 60 * 1000, duration: 4.5 * 60 * 1000, color: 'green' },
-            { start: 5 * 60 * 1000, duration: 3 * 60 * 1000, color: 'red' },
-            { start: 8 * 60 * 1000, duration: 3.5 * 60 * 1000, color: 'green' },
-            { start: 11 * 60 * 1000, duration: 3 * 60 * 1000, color: 'red' } // ← 赤に変更
+            { start: 4.5 * 60 * 1000, duration: 3 * 60 * 1000, color: 'red' },
+            { start: 7.5 * 60 * 1000, duration: 3.5 * 60 * 1000, color: 'green' },
+            { start: 11 * 60 * 1000, duration: 3 * 60 * 1000, color: 'red' },
         ];
 
         function formatTime(ms) {
